@@ -8,33 +8,38 @@ from copy import deepcopy
 
 class Sudoku():
     def __init__(self, matrix):
-        self.matrix = matrix
-        self.matrix_extension = self.extendMatrix()
+        self._matrix = matrix
+        self._matrix_extension = self.extendMatrix(self._matrix)
 
-        self.N = len(self.matrix_extension)-1
-        self.ROW = range(1, self.N+1)
-        self.COL = range(1, self.N+1)
-        self.VAL = range(1, self.N+1)
-        self.Model = PLP.LpProblem("Sudoku", PLP.LpMaximize)
-        self.square_row_length = 3
-        self.square_col_length = 3
+        # parameters
+        self._square_row_length = 3
+        self._square_col_length = 3
 
     
-    def extendMatrix(self):
-        matrix_extension = [[]] + self.matrix
+    def extendMatrix(self, matrix):
+        matrix_extension = [[]] + matrix
         for j in range(0, len(matrix_extension)):
             matrix_extension[j] = [''] + matrix_extension[j]
 
         return matrix_extension
     
+
+    def getMatrix(self):
+        return self._matrix
+    
+
+    def getMatrixExtension(self):
+        return self._matrix_extension
+    
+
     def __str__(self):
         matrix_str = ''
     
         # row index list
-        rows = list(range(0, len(self.matrix)))
+        rows = list(range(0, len(self._matrix)))
     
         for row in rows:
-            matrix_row = str(self.matrix[row])
+            matrix_row = str(self._matrix[row])
 
             if row == rows[-1]:
                 matrix_str += matrix_row
@@ -48,49 +53,71 @@ class Sudoku():
     
 
     def solve(self):
-        # variables
-        var_symbol = 'x'
-        x = PLP.LpVariable.dicts(var_symbol, (self.ROW, self.COL, self.VAL), lowBound=0, upBound=1, cat=PLP.LpBinary)
+        N = len(self._matrix_extension)-1
+        ROW = range(1, N+1)
+        COL = range(1, N+1)
+        VAL = range(1, N+1)
 
-        # Object function doesn't matter
-        self.Model += PLP.lpSum([x[i][j][v] for i in self.ROW for j in self.COL for v in self.VAL]), "Obj"
+        def objectiveFunction(Model):
+            # Object function doesn't matter
+            Model += PLP.lpSum([x[i][j][v] for i in ROW for j in COL for v in VAL]), "Obj"
+            return Model
 
-        # input
-        for i in self.ROW:
-            for j in self.COL:
-                value = self.matrix_extension[i][j]
-                if 1 <= value and value <= self.N:
-                    self.Model += x[i][j][value] == 1
+        def valueConstraints(Model):
+            for i in ROW:
+                for j in COL:
+                    value = self._matrix_extension[i][j]
+                    if 1 <= value and value <= N:
+                        Model += x[i][j][value] == 1
+            return Model
         
-        # Ordinary Sudoku constraints
-        for i in self.ROW:
-            for j in self.COL:
-                self.Model += PLP.lpSum([x[i][j][v] for v in self.VAL]) == 1
+        def ordinaryConstraints(Model):
+            for i in ROW:
+                for j in COL:
+                    Model += PLP.lpSum([x[i][j][v] for v in VAL]) == 1
 
-        for v in self.VAL:
-            for i in self.ROW:
-                self.Model += PLP.lpSum([x[i][j][v] for j in self.COL]) == 1
+            for v in VAL:
+                for i in ROW:
+                    Model += PLP.lpSum([x[i][j][v] for j in COL]) == 1
     
-            for j in self.COL:
-                self.Model += PLP.lpSum([x[i][j][v] for i in self.ROW]) == 1
+                for j in COL:
+                    Model += PLP.lpSum([x[i][j][v] for i in ROW]) == 1
 
-        for v in self.VAL:
-            for offset_i in range(1, self.N+1, self.square_row_length):
-                for offset_j in range(1, self.N+1, self.square_col_length):
-                    self.Model += PLP.lpSum([x[offset_i + i][offset_j + j][v] for i in range(0, self.square_row_length) for j in range(0, self.square_col_length)]) == 1
+            for v in VAL:
+                for offset_i in range(1, N+1, self._square_row_length):
+                    for offset_j in range(1, N+1, self._square_col_length):
+                        Model += PLP.lpSum([x[offset_i + i][offset_j + j][v] for i in range(0, self._square_row_length) for j in range(0, self._square_col_length)]) == 1
+            return Model
         
-        self.Model.solve()
+        def formatSolutionMatrix(Model, input):
+            matrix_solved = deepcopy(input)
+            for value in Model.variables():
+                list_var_name = value.name.split('_')
+                if list_var_name[0] == var_symbol:
+                    i = int(list_var_name[1]) - 1
+                    j = int(list_var_name[2]) - 1
+                    v = int(list_var_name[3])
+                    if value.varValue == 1:
+                        matrix_solved[i][j] = v
+            return matrix_solved
 
-        matrix_solved = deepcopy(self.matrix)
-        for value in self.Model.variables():
-            list_var_name = value.name.split('_')
-            if list_var_name[0] == var_symbol:
-                i = int(list_var_name[1]) - 1
-                j = int(list_var_name[2]) - 1
-                v = int(list_var_name[3])
-                if value.varValue == 1:
-                    matrix_solved[i][j] = v
-            else:
-                print(value.name + '=' + str(value.varValue))
 
-        return matrix_solved
+        # Variable defintion
+        var_symbol = 'x'
+        x = PLP.LpVariable.dicts(var_symbol, (ROW, COL, VAL), lowBound=0, upBound=1, cat=PLP.LpBinary)
+
+        # Model defintion
+        Model = PLP.LpProblem("Sudoku", PLP.LpMaximize)
+
+        Model = objectiveFunction(Model)
+
+        Model = valueConstraints(Model)
+        Model = ordinaryConstraints(Model)
+
+        Model.solve()
+
+        matrix_solved = formatSolutionMatrix(Model, input=self._matrix)
+
+        objective_value = PLP.value(Model.objective)
+        solution_status = PLP.LpStatus[Model.status]
+        return matrix_solved, objective_value, solution_status

@@ -25,18 +25,18 @@ class TestMatrixManipulationFunctions(unittest.TestCase):
 
     def test_first_row_of_extend_matrix(self):
         sudoku = Sudoku(self.input)
-        result = sudoku.extendMatrix()
+        result = sudoku.getMatrixExtension()
         self.assertEqual(result[0], [''])
     
     def test_first_element_of_rows_extend_matrix(self):
         sudoku = Sudoku(self.input)
-        result = sudoku.extendMatrix()
+        result = sudoku.getMatrixExtension()
         for row in result:
             self.assertEqual(row[0], '')
     
     def test_extend_matrix(self):
         sudoku = Sudoku(self.input)
-        result = sudoku.extendMatrix()
+        result = sudoku.getMatrixExtension()
 
         self.assertEqual(result, [[''], 
                                   ['', 4, 3, 5, 2, 6, 9, 7, 8, 1],
@@ -71,10 +71,13 @@ class TestSolveOrdinary(unittest.TestCase):
               [9, 1, 2, 4, 8, 7, 3, 5, 6],
               [7, 6, 8, 3, 5, 2, 4, 9, 1]]
     
+    
     def test_solve_ordinary_sudoku(self):
         sudoku = Sudoku(self.input)
-        result = sudoku.solve()
+        result, objective, status = sudoku.solve()
         self.assertEqual(result, self.output)
+        self.assertEqual(objective, 81)
+        self.assertEqual(status, 'Optimal')
 
 
 if __name__ == '__main__':
