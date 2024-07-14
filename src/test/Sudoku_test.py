@@ -71,11 +71,9 @@ class TestSolveOrdinary(unittest.TestCase):
               [9, 1, 2, 4, 8, 7, 3, 5, 6],
               [7, 6, 8, 3, 5, 2, 4, 9, 1]]
     
-    @unittest.skip
     def test_solve_ordinary_sudoku(self):
         sudoku = Sudoku(self.input)
-        sudoku.solve()
-        result = str(sudoku)
+        result = sudoku.solve()
         self.assertEqual(result, self.output)
 
 
