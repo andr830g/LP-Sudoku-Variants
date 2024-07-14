@@ -1,3 +1,6 @@
+# Updates
+* 14-07-2024 Started refactoring the code into a functional and scalable software system
+
 # LP-Sudoku-Variants
 
 This repository is dedicated to a linear programming solution of multiple sudoku variants using Pythons PULP library.

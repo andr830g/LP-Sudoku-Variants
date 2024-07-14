@@ -9,19 +9,10 @@ from copy import deepcopy
 class Sudoku():
     def __init__(self, matrix):
         self._matrix = matrix
-        self._matrix_extension = self.extendMatrix(self._matrix)
 
         # parameters
         self._square_row_length = 3
         self._square_col_length = 3
-
-    
-    def extendMatrix(self, matrix):
-        matrix_extension = [[]] + matrix
-        for j in range(0, len(matrix_extension)):
-            matrix_extension[j] = [''] + matrix_extension[j]
-
-        return matrix_extension
     
 
     def getMatrix(self):
