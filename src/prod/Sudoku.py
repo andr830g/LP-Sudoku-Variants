@@ -32,6 +32,32 @@ class Sudoku():
         return self._matrix_extension
     
 
+    def getRows(self):
+        rows = len(self.getMatrix())
+        return rows
+    
+
+    def getCols(self):
+        cols = len(self.getElementAtPosition(1, -1))
+        return cols
+    
+    
+    def getElementAtPosition(self, row, col):
+        matrix = self.getMatrix()
+        row = row-1
+        col = col-1
+
+        if (col < 0 or col >= self.getCols()) and (row < 0 or row >= self.getRows()):
+            element = None
+        elif col < 0 or col >= self.getCols():
+            element = matrix[row]
+        elif row < 0 or row >= self.getRows():
+            element = [self.getElementAtPosition(iter_row, col+1) for iter_row in range(1, self.getRows()+1)]
+        else:
+            element = matrix[row][col]
+        return element
+    
+
     def __str__(self):
         matrix_str = ''
     

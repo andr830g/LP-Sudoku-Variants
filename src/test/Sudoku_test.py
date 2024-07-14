@@ -48,6 +48,69 @@ class TestMatrixManipulationFunctions(unittest.TestCase):
                                   ['', 5, 1, 9, 3, 2, 6, 8, 7, 4],
                                   ['', 2, 4, 8, 9, 5, 7, 1, 3, 6],
                                   ['', 7, 6, 3, 4, 1, 8, 2, 5, 9]])
+    
+
+class TestMatrixProperties(unittest.TestCase):
+    input = [[4, 3, 5, 2, 6, 9, 7, 8, 1],
+             [6, 8, 2, 5, 7, 1, 4, 9, 3],
+             [1, 9, 7, 8, 3, 4, 5, 6, 2],
+             [8, 2, 6, 1, 9, 5, 3, 5, 7],
+             [3, 7, 4, 6, 8, 2, 9, 1, 5],
+             [9, 5, 1, 7, 4, 3, 6, 2, 8],
+             [5, 1, 9, 3, 2, 6, 8, 7, 4],
+             [2, 4, 8, 9, 5, 7, 1, 3, 6],
+             [7, 6, 3, 4, 1, 8, 2, 5, 9]]
+    
+    def test_number_of_rows(self):
+        sudoku = Sudoku(self.input)
+        rows = sudoku.getRows()
+        self.assertEqual(rows, 9)
+    
+
+    def test_number_of_cols(self):
+        sudoku = Sudoku(self.input)
+        cols = sudoku.getCols()
+        self.assertEqual(cols, 9)
+    
+
+    def test_get_element_at_position(self):
+        sudoku = Sudoku(self.input)
+        element = sudoku.getElementAtPosition(3, 1)
+        self.assertEqual(element, 1)
+
+        element = sudoku.getElementAtPosition(3, 9)
+        self.assertEqual(element, 2)
+
+        element = sudoku.getElementAtPosition(1, 5)
+        self.assertEqual(element, 6)
+
+        element = sudoku.getElementAtPosition(9, 5)
+        self.assertEqual(element, 1)
+
+    
+    def test_get_elements_at_row(self):
+        sudoku = Sudoku(self.input)
+        row = sudoku.getElementAtPosition(3, 0)
+        self.assertEqual(row, [1, 9, 7, 8, 3, 4, 5, 6, 2])
+
+        row = sudoku.getElementAtPosition(3, 10)
+        self.assertEqual(row, [1, 9, 7, 8, 3, 4, 5, 6, 2])
+    
+
+    def test_get_elements_at_col(self):
+        sudoku = Sudoku(self.input)
+        col = sudoku.getElementAtPosition(0, 5)
+        self.assertEqual(col, [6, 7, 3, 9, 8, 4, 2, 5, 1])
+
+        col = sudoku.getElementAtPosition(10, 5)
+        self.assertEqual(col, [6, 7, 3, 9, 8, 4, 2, 5, 1])
+    
+
+    def test_get_nothing_at_illegal_row_and_col(self):
+        sudoku = Sudoku(self.input)
+        result = sudoku.getElementAtPosition(0, 0)
+        self.assertEqual(result, None)
+
 
 
 class TestSolveOrdinary(unittest.TestCase):
