@@ -41,18 +41,22 @@ class Sudoku():
         cols = len(self.getElementAtPosition(1, -1))
         return cols
     
-    
+
     def getElementAtPosition(self, row, col):
         matrix = self.getMatrix()
         row = row-1
         col = col-1
 
+        # error
         if (col < 0 or col >= self.getCols()) and (row < 0 or row >= self.getRows()):
             element = None
+        # if column value is illegal then output whole row
         elif col < 0 or col >= self.getCols():
             element = matrix[row]
+        # if row value is illegal then output whole column
         elif row < 0 or row >= self.getRows():
             element = [self.getElementAtPosition(iter_row, col+1) for iter_row in range(1, self.getRows()+1)]
+        # if row and column values are legal then output specific element
         else:
             element = matrix[row][col]
         return element
@@ -62,10 +66,10 @@ class Sudoku():
         matrix_str = ''
     
         # row index list
-        rows = list(range(0, len(self._matrix)))
+        rows = list(range(1, self.getRows()+1))
     
         for row in rows:
-            matrix_row = str(self._matrix[row])
+            matrix_row = str(self.getElementAtPosition(row=row, col=-1))
 
             if row == rows[-1]:
                 matrix_str += matrix_row
@@ -79,37 +83,37 @@ class Sudoku():
     
 
     def solve(self):
-        N = len(self._matrix_extension)-1
-        ROW = range(1, N+1)
-        COL = range(1, N+1)
-        VAL = range(1, N+1)
+        N = self.getRows()
+        row_index = range(1, N+1)
+        col_index = range(1, N+1)
+        values = range(1, N+1)
 
         def objectiveFunction(Model):
             # Object function doesn't matter
-            Model += PLP.lpSum([x[i][j][v] for i in ROW for j in COL for v in VAL]), "Obj"
+            Model += PLP.lpSum([x[i][j][v] for i in row_index for j in col_index for v in values]), "Obj"
             return Model
 
         def valueConstraints(Model):
-            for i in ROW:
-                for j in COL:
-                    value = self._matrix_extension[i][j]
+            for i in row_index:
+                for j in col_index:
+                    value = self.getElementAtPosition(row=i, col=j)
                     if 1 <= value and value <= N:
                         Model += x[i][j][value] == 1
             return Model
         
         def ordinaryConstraints(Model):
-            for i in ROW:
-                for j in COL:
-                    Model += PLP.lpSum([x[i][j][v] for v in VAL]) == 1
+            for i in row_index:
+                for j in col_index:
+                    Model += PLP.lpSum([x[i][j][v] for v in values]) == 1
 
-            for v in VAL:
-                for i in ROW:
-                    Model += PLP.lpSum([x[i][j][v] for j in COL]) == 1
+            for v in values:
+                for i in row_index:
+                    Model += PLP.lpSum([x[i][j][v] for j in col_index]) == 1
     
-                for j in COL:
-                    Model += PLP.lpSum([x[i][j][v] for i in ROW]) == 1
+                for j in col_index:
+                    Model += PLP.lpSum([x[i][j][v] for i in row_index]) == 1
 
-            for v in VAL:
+            for v in values:
                 for offset_i in range(1, N+1, self._square_row_length):
                     for offset_j in range(1, N+1, self._square_col_length):
                         Model += PLP.lpSum([x[offset_i + i][offset_j + j][v] for i in range(0, self._square_row_length) for j in range(0, self._square_col_length)]) == 1
@@ -130,7 +134,7 @@ class Sudoku():
 
         # Variable defintion
         var_symbol = 'x'
-        x = PLP.LpVariable.dicts(var_symbol, (ROW, COL, VAL), lowBound=0, upBound=1, cat=PLP.LpBinary)
+        x = PLP.LpVariable.dicts(var_symbol, (row_index, col_index, values), lowBound=0, upBound=1, cat=PLP.LpBinary)
 
         # Model defintion
         Model = PLP.LpProblem("Sudoku", PLP.LpMaximize)
@@ -142,7 +146,7 @@ class Sudoku():
 
         Model.solve()
 
-        matrix_solved = formatSolutionMatrix(Model, input=self._matrix)
+        matrix_solved = formatSolutionMatrix(Model, input=self.getMatrix())
 
         objective_value = PLP.value(Model.objective)
         solution_status = PLP.LpStatus[Model.status]
