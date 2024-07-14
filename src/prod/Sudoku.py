@@ -2,10 +2,21 @@ import os
 import sys
 sys.path.insert(0, os.getcwd())
 
+import pulp as PLP
+
+
 class Sudoku():
     def __init__(self, matrix):
         self.matrix = matrix
+        self.matrix_extension = self.extendMatrix()
+
     
+    def extendMatrix(self):
+        matrix_extension = [[]] + self.matrix
+        for j in range(0, len(matrix_extension)):
+            matrix_extension[j] = [''] + matrix_extension[j]
+
+        return matrix_extension
     
     def __str__(self):
         matrix_str = ''
@@ -25,3 +36,7 @@ class Sudoku():
         matrix_str = '[' + matrix_str + ']'
     
         return matrix_str
+    
+
+    def solve(self):
+        return None
