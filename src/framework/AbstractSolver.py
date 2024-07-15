@@ -6,11 +6,12 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 from src.framework.AbstractSudoku import AbstractSudoku
+from src.framework.Status import Status
 
 
 class AbstractSolver(ABC):
     @abstractmethod
-    def addDiagonalRule(self) -> None:
+    def addDiagonalRule(self) -> Status:
         pass
 
     @abstractmethod
@@ -19,7 +20,7 @@ class AbstractSolver(ABC):
     
 
     @abstractmethod
-    def addNonConsecutiveNeighborRule(self) -> None:
+    def addNonConsecutiveNeighborRule(self) -> Status:
         pass
 
     @abstractmethod
@@ -28,7 +29,7 @@ class AbstractSolver(ABC):
 
     
     @abstractmethod
-    def addChessKingRule(self) -> None:
+    def addChessKingRule(self) -> Status:
         pass
 
     @abstractmethod
@@ -37,7 +38,7 @@ class AbstractSolver(ABC):
 
 
     @abstractmethod
-    def addChessKnightRule(self) -> None:
+    def addChessKnightRule(self) -> Status:
         pass
 
     @abstractmethod
@@ -46,7 +47,7 @@ class AbstractSolver(ABC):
 
 
     @abstractmethod
-    def addThermometerRule(self, thermometer_set: list) -> None:
+    def addThermometerRule(self, thermometer_set: list) -> Status:
         pass
 
     @abstractmethod
@@ -55,7 +56,7 @@ class AbstractSolver(ABC):
 
 
     @abstractmethod
-    def addPalindromeRule(self, palindrome_set: list) -> None:
+    def addPalindromeRule(self, palindrome_set: list) -> Status:
         pass
 
     @abstractmethod
@@ -64,7 +65,7 @@ class AbstractSolver(ABC):
 
 
     @abstractmethod
-    def addKropkiRule(self, kropki_set: list) -> None:
+    def addKropkiRule(self, kropki_set: list) -> Status:
         pass
 
     @abstractmethod
@@ -73,7 +74,7 @@ class AbstractSolver(ABC):
 
 
     @abstractmethod
-    def addXVRule(self, xv_set: list) -> None:
+    def addXVRule(self, xv_set: list) -> Status:
         pass
 
     @abstractmethod
@@ -82,7 +83,7 @@ class AbstractSolver(ABC):
 
 
     @abstractmethod
-    def addKillerRule(self, killer_set: list) -> None:
+    def addKillerRule(self, killer_set: list) -> Status:
         pass
 
     @abstractmethod
@@ -91,5 +92,5 @@ class AbstractSolver(ABC):
 
 
     @abstractmethod
-    def solve(self, sudoku: AbstractSudoku) -> np.array:
+    def solve(self, sudoku: AbstractSudoku) -> tuple[np.array, Status]:
         pass

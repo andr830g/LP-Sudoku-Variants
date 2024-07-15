@@ -3,17 +3,85 @@ import sys
 sys.path.insert(0, os.getcwd())
 
 from src.framework.AbstractSudoku import AbstractSudoku
-from src.prod.solvers.BaseSolver import BaseSolver
+from src.framework.AbstractSolver import AbstractSolver
+from src.framework.Status import Status
 import pulp as PLP
 from copy import deepcopy
 import numpy as np
 
 
-class PULPSolver(BaseSolver):
+class PULPSolver(AbstractSolver):
     def __init__(self) -> None:
-        super().__init__()
+        self._use_diagonal_rule = False
+        self._use_nonConsecutiveNeighbor_rule = False
 
-    def solve(self, sudoku: AbstractSudoku) -> tuple[np.array, str]:
+
+    def addDiagonalRule(self) -> Status:
+        self._use_diagonal_rule = True
+        return Status.OK
+
+    def useDiagonalRule(self) -> bool:
+        return self._use_diagonal_rule
+
+
+    def addNonConsecutiveNeighborRule(self) -> Status:
+        self._use_nonConsecutiveNeighbor_rule = True
+        return Status.OK
+
+    def useNonConsecutiveNeighborRule(self) -> bool:
+        return self._use_nonConsecutiveNeighbor_rule
+
+
+    def addChessKingRule(self) -> Status:
+        raise NotImplementedError
+
+    def useChessKingRule(self) -> bool:
+        raise NotImplementedError
+
+
+    def addChessKnightRule(self) -> Status:
+        raise NotImplementedError
+
+    def useChessKnightRule(self) -> bool:
+        raise NotImplementedError
+
+
+    def addThermometerRule(self, thermometer_set: list) -> Status:
+        raise NotImplementedError
+
+    def useThermometerRule(self, thermometer_set: list) -> bool:
+        raise NotImplementedError
+
+
+    def addPalindromeRule(self, palindrome_set: list) -> Status:
+        raise NotImplementedError
+
+    def usePalindromeRule(self, palindrome_set: list) -> bool:
+        raise NotImplementedError
+
+
+    def addKropkiRule(self, kropki_set: list) -> Status:
+        raise NotImplementedError
+
+    def useKropkiRule(self, kropki_set: list) -> bool:
+        raise NotImplementedError
+
+
+    def addXVRule(self, xv_set: list) -> Status:
+        raise NotImplementedError
+
+    def useXVRule(self, xv_set: list) -> bool:
+        raise NotImplementedError
+
+
+    def addKillerRule(self, killer_set: list) -> Status:
+        raise NotImplementedError
+
+    def useKillerRule(self, killer_set: list) -> bool:
+        raise NotImplementedError
+
+
+    def solve(self, sudoku: AbstractSudoku) -> tuple[np.array, Status]:
         N = sudoku.getRows()
         row_index = range(1, N+1)
         col_index = range(1, N+1)
@@ -37,8 +105,9 @@ class PULPSolver(BaseSolver):
         Model.solve()
 
         matrix_solved = self.formatSolutionMatrix(Model, sudoku.getMatrix(), var_symbol)
-        objective_value = PLP.value(Model.objective)
-        solution_status = PLP.LpStatus[Model.status]
+        #objective_value = PLP.value(Model.objective)
+        solution_status = Status.SOLVED if PLP.LpStatus[Model.status] == Status.SOLVED.value else Status.NO_SOLUTION
+
         return matrix_solved, solution_status
     
 

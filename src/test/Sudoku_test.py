@@ -4,9 +4,9 @@ sys.path.insert(0, os.getcwd())
 
 import unittest
 import numpy as np
+from src.framework.Status import Status
 from src.prod.Sudoku import Sudoku
 from src.prod.solvers.PULPSolver import PULPSolver
-from src.test.fakeObjects.FakeSolver import FakeSolver
 
 
 class TestMatrixManipulationFunctions(unittest.TestCase):
@@ -23,7 +23,7 @@ class TestMatrixManipulationFunctions(unittest.TestCase):
     output = '[[4 3 5 2 6 9 7 8 1]\n[6 8 2 5 7 1 4 9 3]\n[1 9 7 8 3 4 5 6 2]\n[8 2 6 1 9 5 3 5 7]\n[3 7 4 6 8 2 9 1 5]\n[9 5 1 7 4 3 6 2 8]\n[5 1 9 3 2 6 8 7 4]\n[2 4 8 9 5 7 1 3 6]\n[7 6 3 4 1 8 2 5 9]]'
     
     def test_print_without_spaces(self):
-        solver = FakeSolver()
+        solver = PULPSolver()
         sudoku = Sudoku(matrix=self.input, solverStrategy=solver)
         result = str(sudoku)
         
@@ -43,21 +43,21 @@ class TestMatrixProperties(unittest.TestCase):
                       [7, 6, 3, 4, 1, 8, 2, 5, 9]])
     
     def test_number_of_rows(self):
-        solver = FakeSolver()
+        solver = PULPSolver()
         sudoku = Sudoku(matrix=self.input, solverStrategy=solver)
         rows = sudoku.getRows()
         self.assertEqual(rows, 9)
     
 
     def test_number_of_cols(self):
-        solver = FakeSolver()
+        solver = PULPSolver()
         sudoku = Sudoku(matrix=self.input, solverStrategy=solver)
         cols = sudoku.getCols()
         self.assertEqual(cols, 9)
     
 
     def test_get_element_at_position(self):
-        solver = FakeSolver()
+        solver = PULPSolver()
         sudoku = Sudoku(matrix=self.input, solverStrategy=solver)
         element = sudoku.getElementAtPosition(3, 1)
         self.assertEqual(element, 1)
@@ -75,7 +75,7 @@ class TestMatrixProperties(unittest.TestCase):
     def test_get_elements_at_row(self):
         output = np.array([1, 9, 7, 8, 3, 4, 5, 6, 2])
 
-        solver = FakeSolver()
+        solver = PULPSolver()
         sudoku = Sudoku(matrix=self.input, solverStrategy=solver)
         row = sudoku.getRow(3)
 
@@ -85,14 +85,14 @@ class TestMatrixProperties(unittest.TestCase):
     def test_get_elements_at_col(self):
         output = np.array([6, 7, 3, 9, 8, 4, 2, 5, 1])
 
-        solver = FakeSolver()
+        solver = PULPSolver()
         sudoku = Sudoku(matrix=self.input, solverStrategy=solver)
         col = sudoku.getCol(5)
         self.assertTrue(np.all(col == output))
     
 
     def test_get_nothing_at_illegal_row_and_col(self):
-        solver = FakeSolver()
+        solver = PULPSolver()
         sudoku = Sudoku(matrix=self.input, solverStrategy=solver)
         result = sudoku.getElementAtPosition(0, 0)
         self.assertEqual(result, None)
@@ -126,7 +126,7 @@ class TestSolveOrdinary(unittest.TestCase):
         result, status = sudoku.solve()
 
         self.assertTrue(np.all(result == output))
-        self.assertEqual(status, 'Optimal')
+        self.assertEqual(status, Status.SOLVED)
     
 
     def test_solve_ordinary_sudoku_2(self):
@@ -154,17 +154,35 @@ class TestSolveOrdinary(unittest.TestCase):
         sudoku = Sudoku(matrix=input, solverStrategy=solver)
         result, status = sudoku.solve()
         self.assertTrue(np.all(result == output))
-        self.assertEqual(status, 'Optimal')
+        self.assertEqual(status, Status.SOLVED)
+    
+    
+    def test_no_solution_ordinary_sudoku(self):
+        input = np.array([[1, 2, 0, 2, 8, 0, 5, 0, 0],
+                          [0, 0, 0, 0, 0, 4, 0, 0, 0],
+                          [0, 2, 0, 0, 3, 0, 0, 0, 0],
+                          [0, 0, 7, 9, 0, 0, 0, 8, 0],
+                          [0, 8, 0, 0, 4, 7, 9, 0, 1],
+                          [0, 3, 0, 0, 0, 0, 2, 0, 6],
+                          [0, 0, 0, 3, 0, 2, 6, 0, 0],
+                          [0, 6, 4, 0, 0, 1, 0, 9, 0],
+                          [7, 0, 0, 0, 0, 6, 8, 0, 0]])
+        
+        solver = PULPSolver()
+        sudoku = Sudoku(matrix=input, solverStrategy=solver)
+        result, status = sudoku.solve()
+        self.assertEqual(status, Status.NO_SOLUTION)
 
 
 
 class TestSolveDiagonal(unittest.TestCase):
     def test_add_diagonal_rule(self):
         solver = PULPSolver()
-        self.assertEqual(solver._use_diagonal_rule, False)
+        self.assertEqual(solver.useDiagonalRule(), False)
 
-        solver.addDiagonalRule()
-        self.assertEqual(solver._use_diagonal_rule, True)
+        status = solver.addDiagonalRule()
+        self.assertEqual(status, Status.OK)
+        self.assertEqual(solver.useDiagonalRule(), True)
 
 
     def test_solve_diagonal_rule(self):
@@ -189,22 +207,23 @@ class TestSolveDiagonal(unittest.TestCase):
                            [8, 9, 4, 5, 6, 3, 1, 2, 7]])
         
         solver = PULPSolver()
-        solver.addDiagonalRule()
+        status = solver.addDiagonalRule()
         sudoku = Sudoku(matrix=input, solverStrategy=solver)
         result, status = sudoku.solve()
 
         self.assertTrue(np.all(result == output))
-        self.assertEqual(status, 'Optimal')
+        self.assertEqual(status, Status.SOLVED)
 
 
 
 class TestSolveNonConsecutiveNeighbor(unittest.TestCase):
     def test_add_nonConsecutiveNeighbor_rule(self):
         solver = PULPSolver()
-        self.assertEqual(solver._use_nonConsecutiveNeighbor_rule, False)
+        self.assertEqual(solver.useNonConsecutiveNeighborRule(), False)
 
-        solver.addNonConsecutiveNeighborRule()
-        self.assertEqual(solver._use_nonConsecutiveNeighbor_rule, True)
+        status = solver.addNonConsecutiveNeighborRule()
+        self.assertEqual(status, Status.OK)
+        self.assertEqual(solver.useNonConsecutiveNeighborRule(), True)
     
     def test_solve_nonConsecutiveNeighbor_rule(self):
         pass

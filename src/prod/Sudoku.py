@@ -3,12 +3,13 @@ import sys
 sys.path.insert(0, os.getcwd())
 
 from src.framework.AbstractSudoku import AbstractSudoku
-from src.prod.solvers.BaseSolver import BaseSolver
+from src.framework.AbstractSolver import AbstractSolver
+from src.framework.Status import Status
 import numpy as np
 
 
 class Sudoku(AbstractSudoku):
-    def __init__(self, matrix: np.array, solverStrategy: BaseSolver) -> None:
+    def __init__(self, matrix: np.array, solverStrategy: AbstractSolver) -> None:
         self._matrix = matrix
         self._solverStrategy = solverStrategy
 
@@ -75,6 +76,6 @@ class Sudoku(AbstractSudoku):
         return matrix_str
     
 
-    def solve(self) -> tuple[np.array, str]:
+    def solve(self) -> tuple[np.array, Status]:
         matrix_solved, solution_status = self._solverStrategy.solve(sudoku=self)
         return matrix_solved, solution_status
