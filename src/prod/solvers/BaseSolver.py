@@ -3,8 +3,10 @@ import sys
 sys.path.insert(0, os.getcwd())
 
 from abc import ABC, abstractmethod
+import numpy as np
 
 from src.framework.AbstractSolver import AbstractSolver
+from src.framework.AbstractSudoku import AbstractSudoku
 
 class BaseSolver(AbstractSolver):
     def __init__(self) -> None:
@@ -12,83 +14,69 @@ class BaseSolver(AbstractSolver):
         self._use_nonConsecutiveNeighbor_rule = False
 
 
-    def addDiagonalRule(self):
+    def addDiagonalRule(self) -> None:
         self._use_diagonal_rule = True
 
-    def useDiagonalRule(self):
+    def useDiagonalRule(self) -> bool:
         return self._use_diagonal_rule
 
 
-    def addNonConsecutiveNeighborRule(self):
+    def addNonConsecutiveNeighborRule(self) -> None:
         self._use_nonConsecutiveNeighbor_rule = True
 
-    def useNonConsecutiveNeighborRule(self):
+    def useNonConsecutiveNeighborRule(self) -> bool:
         return self._use_nonConsecutiveNeighbor_rule
 
 
-    @abstractmethod
-    def addChessKingRule(self):
-        pass
+    def addChessKingRule(self) -> None:
+        raise NotImplementedError
 
-    @abstractmethod
-    def useChessKingRule(self):
-        pass
+    def useChessKingRule(self) -> bool:
+        raise NotImplementedError
 
 
-    @abstractmethod
-    def addChessKnightRule(self):
-        pass
+    def addChessKnightRule(self) -> None:
+        raise NotImplementedError
 
-    @abstractmethod
-    def useChessKnightRule(self):
-        pass
+    def useChessKnightRule(self) -> bool:
+        raise NotImplementedError
 
 
-    @abstractmethod
-    def addThermometerRule(self, thermometer_set):
-        pass
+    def addThermometerRule(self, thermometer_set: list) -> None:
+        raise NotImplementedError
 
-    @abstractmethod
-    def useThermometerRule(self, thermometer_set):
-        pass
+    def useThermometerRule(self, thermometer_set: list) -> bool:
+        raise NotImplementedError
 
 
-    @abstractmethod
-    def addPalindromeRule(self, palindrome_set):
-        pass
+    def addPalindromeRule(self, palindrome_set: list) -> None:
+        raise NotImplementedError
 
-    @abstractmethod
-    def usePalindromeRule(self, palindrome_set):
-        pass
+    def usePalindromeRule(self, palindrome_set: list) -> bool:
+        raise NotImplementedError
 
 
-    @abstractmethod
-    def addKropkiRule(self, kropki_set):
-        pass
+    def addKropkiRule(self, kropki_set: list) -> None:
+        raise NotImplementedError
 
-    @abstractmethod
-    def useKropkiRule(self, kropki_set):
-        pass
+    def useKropkiRule(self, kropki_set: list) -> bool:
+        raise NotImplementedError
 
 
-    @abstractmethod
-    def addXVRule(self, xv_set):
-        pass
+    def addXVRule(self, xv_set: list) -> None:
+        raise NotImplementedError
 
-    @abstractmethod
-    def useXVRule(self, xv_set):
-        pass
+    def useXVRule(self, xv_set: list) -> bool:
+        raise NotImplementedError
+
+
+    def addKillerRule(self, killer_set: list) -> None:
+        raise NotImplementedError
+
+    def useKillerRule(self, killer_set: list) -> bool:
+        raise NotImplementedError
 
 
     @abstractmethod
-    def addKillerRule(self, killer_set):
-        pass
-
-    @abstractmethod
-    def useKillerRule(self, killer_set):
-        pass
-
-
-    @abstractmethod
-    def solve(self, sudoku):
+    def solve(self, sudoku: AbstractSudoku) -> np.array:
         pass

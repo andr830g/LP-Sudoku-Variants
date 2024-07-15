@@ -2,16 +2,18 @@ import os
 import sys
 sys.path.insert(0, os.getcwd())
 
+from src.framework.AbstractSudoku import AbstractSudoku
 from src.prod.solvers.BaseSolver import BaseSolver
 import pulp as PLP
 from copy import deepcopy
+import numpy as np
 
 
 class PULPSolver(BaseSolver):
     def __init__(self) -> None:
         super().__init__()
 
-    def solve(self, sudoku):
+    def solve(self, sudoku: AbstractSudoku) -> tuple[np.array, str]:
         N = sudoku.getRows()
         row_index = range(1, N+1)
         col_index = range(1, N+1)
@@ -40,13 +42,13 @@ class PULPSolver(BaseSolver):
         return matrix_solved, solution_status
     
 
-    def objectiveFunction(self, Model, x, row_index, col_index, values):
+    def objectiveFunction(self, Model, x, row_index, col_index, values) -> PLP.LpProblem:
         # Object function doesn't matter
         Model += PLP.lpSum([x[i][j][v] for i in row_index for j in col_index for v in values]), "Obj"
         return Model
 
 
-    def valueConstraints(self, Model, sudoku, x, N, row_index, col_index, values):
+    def valueConstraints(self, Model, sudoku, x, N, row_index, col_index, values) -> PLP.LpProblem:
         # each cell has the same value as the input if any
         for i in row_index:
             for j in col_index:
@@ -56,7 +58,7 @@ class PULPSolver(BaseSolver):
         return Model
         
 
-    def ordinaryConstraints(self, Model, sudoku, x, N, row_index, col_index, values):
+    def ordinaryConstraints(self, Model, sudoku, x, N, row_index, col_index, values) -> PLP.LpProblem:
         # each cell has one value
         for i in row_index:
             for j in col_index:
@@ -79,7 +81,7 @@ class PULPSolver(BaseSolver):
         return Model
     
 
-    def diagonalConstraints(self, Model, x, N, row_index, col_index, values):
+    def diagonalConstraints(self, Model, x, N, row_index, col_index, values) -> PLP.LpProblem:
         diagonals = [[(i, j) for i in row_index for j in col_index if i==j],
                     [(i, j) for i in row_index for j in col_index if i==N+1-j]]
         
@@ -91,7 +93,7 @@ class PULPSolver(BaseSolver):
         return Model
     
 
-    def formatSolutionMatrix(self, Model, input, var_symbol):
+    def formatSolutionMatrix(self, Model: PLP.LpProblem, input: np.array, var_symbol: str) -> np.array:
         matrix_solved = deepcopy(input)
         for value in Model.variables():
             list_var_name = value.name.split('_')
