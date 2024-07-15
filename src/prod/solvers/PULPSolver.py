@@ -109,12 +109,13 @@ class PULPSolver(AbstractSolver):
         non_consecutive_count = 0
         for i in range(1, N+1):
             for j in range(1, N+1):
-                non_consecutive_count += 1
                 if j < N:
+                    non_consecutive_count += 1
                     Model += PLP.lpSum([x[i][j][v]*v for v in values]) - PLP.lpSum([x[i][j+1][v]*v for v in values]) - 2 >= -self._inf*(1-non_consecutive_delta[non_consecutive_count][1])
                     Model += PLP.lpSum([x[i][j+1][v]*v for v in values]) - PLP.lpSum([x[i][j][v]*v for v in values]) - 2 >= -self._inf*(1-non_consecutive_delta[non_consecutive_count][2])
                     Model += non_consecutive_delta[non_consecutive_count][1] + non_consecutive_delta[non_consecutive_count][2] == 1
-                elif i < N:
+                if i < N:
+                    non_consecutive_count += 1
                     Model += PLP.lpSum([x[i][j][v]*v for v in values]) - PLP.lpSum([x[i+1][j][v]*v for v in values]) - 2 >= -self._inf*(1-non_consecutive_delta[non_consecutive_count][1])
                     Model += PLP.lpSum([x[i+1][j][v]*v for v in values]) - PLP.lpSum([x[i][j][v]*v for v in values]) - 2 >= -self._inf*(1-non_consecutive_delta[non_consecutive_count][2])
                     Model += non_consecutive_delta[non_consecutive_count][1] + non_consecutive_delta[non_consecutive_count][2] == 1
