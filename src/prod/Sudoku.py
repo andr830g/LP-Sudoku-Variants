@@ -4,14 +4,20 @@ sys.path.insert(0, os.getcwd())
 
 from src.framework.AbstractSudoku import AbstractSudoku
 from src.framework.AbstractSolver import AbstractSolver
-from src.framework.Status import Status
+from src.framework.Enums import Status, Variants, variants_default
 import numpy as np
+from copy import deepcopy
 
 
 class Sudoku(AbstractSudoku):
-    def __init__(self, matrix: np.array, solverStrategy: AbstractSolver) -> None:
-        self._matrix = matrix
-        self._solverStrategy = solverStrategy
+    def __init__(self, input_matrix: np.array, input_solverStrategy: AbstractSolver, input_variants: dict = None) -> None:
+        self._matrix = input_matrix
+        self._solverStrategy = input_solverStrategy
+
+        self._variants = deepcopy(variants_default)
+        if input_variants is not None:
+            for variant, value in input_variants.items():
+                self._variants[variant] = value
 
         # parameters
         self._square_row_length = 3
@@ -74,6 +80,10 @@ class Sudoku(AbstractSudoku):
         matrix_str = '[' + matrix_str + ']'
     
         return matrix_str
+    
+
+    def getVariants(self) -> dict[Variants]:
+        return self._variants
     
 
     def solve(self) -> tuple[np.array, Status]:

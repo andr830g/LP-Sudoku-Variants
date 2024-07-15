@@ -4,7 +4,7 @@ sys.path.insert(0, os.getcwd())
 
 from src.framework.AbstractSudoku import AbstractSudoku
 from src.framework.AbstractSolver import AbstractSolver
-from src.framework.Status import Status
+from src.framework.Enums import Status, Variants
 import pulp as PLP
 from copy import deepcopy
 import numpy as np
@@ -12,73 +12,11 @@ import numpy as np
 
 class PULPSolver(AbstractSolver):
     def __init__(self) -> None:
-        self._use_diagonal_rule = False
-        self._use_nonConsecutiveNeighbor_rule = False
+        self._inf = 9999
 
-
-    def addDiagonalRule(self) -> Status:
-        self._use_diagonal_rule = True
-        return Status.OK
-
-    def useDiagonalRule(self) -> bool:
-        return self._use_diagonal_rule
-
-
-    def addNonConsecutiveNeighborRule(self) -> Status:
-        self._use_nonConsecutiveNeighbor_rule = True
-        return Status.OK
-
-    def useNonConsecutiveNeighborRule(self) -> bool:
-        return self._use_nonConsecutiveNeighbor_rule
-
-
-    def addChessKingRule(self) -> Status:
-        raise NotImplementedError
-
-    def useChessKingRule(self) -> bool:
-        raise NotImplementedError
-
-
-    def addChessKnightRule(self) -> Status:
-        raise NotImplementedError
-
-    def useChessKnightRule(self) -> bool:
-        raise NotImplementedError
-
-
-    def addThermometerRule(self, thermometer_set: list) -> Status:
-        raise NotImplementedError
-
-    def useThermometerRule(self, thermometer_set: list) -> bool:
-        raise NotImplementedError
-
-
-    def addPalindromeRule(self, palindrome_set: list) -> Status:
-        raise NotImplementedError
-
-    def usePalindromeRule(self, palindrome_set: list) -> bool:
-        raise NotImplementedError
-
-
-    def addKropkiRule(self, kropki_set: list) -> Status:
-        raise NotImplementedError
-
-    def useKropkiRule(self, kropki_set: list) -> bool:
-        raise NotImplementedError
-
-
-    def addXVRule(self, xv_set: list) -> Status:
-        raise NotImplementedError
-
-    def useXVRule(self, xv_set: list) -> bool:
-        raise NotImplementedError
-
-
-    def addKillerRule(self, killer_set: list) -> Status:
-        raise NotImplementedError
-
-    def useKillerRule(self, killer_set: list) -> bool:
-        raise NotImplementedError
+        self._variant_map = {Variants.SQUARES:self.squareConstraints,
+                             Variants.DIAGONAL:self.diagonalConstraints,
+                             Variants.NON_CONSECUTIVE_NEIGHBOR:self.nonConsecutiveNeighborConstraints}
 
 
     def solve(self, sudoku: AbstractSudoku) -> tuple[np.array, Status]:
@@ -99,13 +37,13 @@ class PULPSolver(AbstractSolver):
         Model = self.valueConstraints(Model, sudoku, x, N, row_index, col_index, values)
         Model = self.ordinaryConstraints(Model, sudoku, x, N, row_index, col_index, values)
 
-        if self.useDiagonalRule():
-            Model = self.diagonalConstraints(Model, x, N, row_index, col_index, values)
+        for key, value in sudoku.getVariants().items():
+            if value == True:
+                Model = self._variant_map[key](Model, sudoku, x, N, row_index, col_index, values)
 
         Model.solve()
 
         matrix_solved = self.formatSolutionMatrix(Model, sudoku.getMatrix(), var_symbol)
-        #objective_value = PLP.value(Model.objective)
         solution_status = Status.SOLVED if PLP.LpStatus[Model.status] == Status.SOLVED.value else Status.NO_SOLUTION
 
         return matrix_solved, solution_status
@@ -142,6 +80,10 @@ class PULPSolver(AbstractSolver):
             for j in col_index:
                 Model += PLP.lpSum([x[i][j][v] for i in row_index]) == 1
 
+        return Model
+    
+
+    def squareConstraints(self, Model, sudoku, x, N, row_index, col_index, values) -> PLP.LpProblem:
         # each value occur once per square
         for v in values:
             for offset_i in range(1, N+1, sudoku._square_row_length):
@@ -150,7 +92,7 @@ class PULPSolver(AbstractSolver):
         return Model
     
 
-    def diagonalConstraints(self, Model, x, N, row_index, col_index, values) -> PLP.LpProblem:
+    def diagonalConstraints(self, Model, sudoku, x, N, row_index, col_index, values) -> PLP.LpProblem:
         diagonals = [[(i, j) for i in row_index for j in col_index if i==j],
                     [(i, j) for i in row_index for j in col_index if i==N+1-j]]
         
@@ -159,6 +101,23 @@ class PULPSolver(AbstractSolver):
             for value in values:
                 Model += PLP.lpSum([x[i][j][value] for (i, j) in diag]) == 1
 
+        return Model
+    
+
+    def nonConsecutiveNeighborConstraints(self, Model, sudoku, x, N, row_index, col_index, values) -> PLP.LpProblem:
+        non_consecutive_delta = PLP.LpVariable.dicts("non_consecutive_delta", (range(1, (N-1)*N*2+1), [1, 2]), lowBound=0, upBound=1, cat=PLP.LpBinary)
+        non_consecutive_count = 0
+        for i in range(1, N+1):
+            for j in range(1, N+1):
+                non_consecutive_count += 1
+                if j < N:
+                    Model += PLP.lpSum([x[i][j][v]*v for v in values]) - PLP.lpSum([x[i][j+1][v]*v for v in values]) - 2 >= -self._inf*(1-non_consecutive_delta[non_consecutive_count][1])
+                    Model += PLP.lpSum([x[i][j+1][v]*v for v in values]) - PLP.lpSum([x[i][j][v]*v for v in values]) - 2 >= -self._inf*(1-non_consecutive_delta[non_consecutive_count][2])
+                    Model += non_consecutive_delta[non_consecutive_count][1] + non_consecutive_delta[non_consecutive_count][2] == 1
+                elif i < N:
+                    Model += PLP.lpSum([x[i][j][v]*v for v in values]) - PLP.lpSum([x[i+1][j][v]*v for v in values]) - 2 >= -self._inf*(1-non_consecutive_delta[non_consecutive_count][1])
+                    Model += PLP.lpSum([x[i+1][j][v]*v for v in values]) - PLP.lpSum([x[i][j][v]*v for v in values]) - 2 >= -self._inf*(1-non_consecutive_delta[non_consecutive_count][2])
+                    Model += non_consecutive_delta[non_consecutive_count][1] + non_consecutive_delta[non_consecutive_count][2] == 1
         return Model
     
 
