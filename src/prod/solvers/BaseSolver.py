@@ -1,24 +1,31 @@
+import os
+import sys
+sys.path.insert(0, os.getcwd())
+
 from abc import ABC, abstractmethod
 
-class AbstractSolver(ABC):
-    @abstractmethod
+from src.framework.AbstractSolver import AbstractSolver
+
+class BaseSolver(AbstractSolver):
+    def __init__(self) -> None:
+        self._use_diagonal_rule = False
+        self._use_nonConsecutiveNeighbor_rule = False
+
+
     def addDiagonalRule(self):
-        pass
+        self._use_diagonal_rule = True
 
-    @abstractmethod
     def useDiagonalRule(self):
-        pass
-    
+        return self._use_diagonal_rule
 
-    @abstractmethod
+
     def addNonConsecutiveNeighborRule(self):
-        pass
+        self._use_nonConsecutiveNeighbor_rule = True
 
-    @abstractmethod
     def useNonConsecutiveNeighborRule(self):
-        pass
+        return self._use_nonConsecutiveNeighbor_rule
 
-    
+
     @abstractmethod
     def addChessKingRule(self):
         pass
