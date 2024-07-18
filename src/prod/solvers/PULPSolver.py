@@ -18,7 +18,8 @@ class PULPSolver(AbstractSolver):
                              Variants.DIAGONAL:self.diagonalConstraints,
                              Variants.NON_CONSECUTIVE_NEIGHBOR:self.nonConsecutiveNeighborConstraints,
                              Variants.CHESS_KING:self.chessKingConstraints,
-                             Variants.CHESS_KNIGHT:self.chessKnightConstraints}
+                             Variants.CHESS_KNIGHT:self.chessKnightConstraints,
+                             Variants.THERMO:self.thermoConstraints}
 
 
     def solve(self, sudoku: AbstractSudoku) -> tuple[np.array, Status]:
@@ -140,6 +141,17 @@ class PULPSolver(AbstractSolver):
                                        if i+a >= 1 and i+a <= N and j+b >= 1 and j+b <= N]
                 for v in values:
                     Model += PLP.lpSum([x[a][b][v] for (a, b) in chess_knight_points]) <= 8*(1-x[i][j][v])
+        return Model
+    
+
+    def thermoConstraints(self, Model, sudoku, x, N, row_index, col_index, values) -> PLP.LpProblem:
+        for shape in sudoku.getShape(Variants.THERMO):
+            while len(shape) >= 2:
+                p1 = shape[0]
+                p2 = shape[1]
+                Model += PLP.lpSum([x[p1[0]][p1[1]][v]*v for v in values]) <= PLP.lpSum([x[p2[0]][p2[1]][v]*v for v in values])
+                Model += PLP.lpSum([x[p2[0]][p2[1]][v]*v for v in values]) - PLP.lpSum([x[p1[0]][p1[1]][v]*v for v in values]) >= 1
+                shape.pop(0)
         return Model
     
 

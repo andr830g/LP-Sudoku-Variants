@@ -426,5 +426,83 @@ class TestSolveChessKnight(unittest.TestCase):
         self.assertTrue(np.all(result == output))
 
 
+
+class TestSolveThermo(unittest.TestCase):
+    def test_add_thermo_rule(self):
+        variants = {Variants.THERMO:True}
+        input = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0]])
+        
+        solver = PULPSolver()
+        sudoku = Sudoku(input_matrix=input, input_solverStrategy=solver, input_variants=variants)
+
+        self.assertEqual(sudoku.getVariants()[Variants.THERMO], True)
+    
+
+    def test_get_shape_for_nonexisting_variant(self):
+        shapes = {}#{Variants.THERMO:[[(2, 5), (3, 6), (4, 7), (5, 8)],
+                   #                [(3, 4), (4, 5), (5, 6), (6, 7)],
+                   #                [(7, 6), (6, 5), (5, 4), (4, 3)],
+                   #                [(8, 5), (7, 4), (6, 3), (5, 2)]]}
+        
+        solver = PULPSolver()
+        sudoku = Sudoku(input_matrix=None, input_solverStrategy=solver, input_variants=None, input_shapes=shapes)
+        self.assertEqual(sudoku.getShape(Variants.THERMO), None)
+
+
+    def test_get_shape(self):
+        shapes = {Variants.THERMO:[[(2, 5), (3, 6), (4, 7), (5, 8)],
+                                   [(3, 4), (4, 5), (5, 6), (6, 7)],
+                                   [(7, 6), (6, 5), (5, 4), (4, 3)],
+                                   [(8, 5), (7, 4), (6, 3), (5, 2)]]}
+        
+        solver = PULPSolver()
+        sudoku = Sudoku(input_matrix=None, input_solverStrategy=solver, input_variants=None, input_shapes=shapes)
+        self.assertEqual(sudoku.getShape(Variants.THERMO), shapes.get(Variants.THERMO))
+
+    
+    def test_solve_thermo_rule(self):
+        variants = {Variants.THERMO:True}
+        shapes = {Variants.THERMO:[[(5, 2), (4, 3), (3, 4), (2, 5)],
+                                   [(6, 3), (5, 4), (4, 5), (3, 6)],
+                                   [(4, 7), (5, 6), (6, 5), (7, 4)],
+                                   [(5, 8), (6, 7), (7, 6), (8, 5)]]}
+
+        input = np.array([[0, 0, 1, 0, 0, 8, 0, 0, 5],
+                          [0, 4, 0, 7, 0, 0, 2, 1, 0],
+                          [0, 0, 0, 3, 0, 9, 0, 0, 0],
+                          [0, 0, 0, 5, 6, 0, 0, 0, 8],
+                          [0, 1, 6, 4, 0, 0, 0, 2, 3],
+                          [9, 0, 0, 1, 0, 2, 4, 7, 6],
+                          [0, 6, 4, 9, 0, 0, 3, 0, 0],
+                          [0, 0, 0, 0, 7, 4, 0, 5, 0],
+                          [5, 0, 0, 0, 3, 1, 0, 0, 0]])
+
+        output = np.array([[6, 9, 1, 2, 4, 8, 7, 3, 5],
+                           [3, 4, 8, 7, 5, 6, 2, 1, 9],
+                           [7, 2, 5, 3, 1, 9, 8, 6, 4],
+                           [4, 7, 2, 5, 6, 3, 1, 9, 8],
+                           [8, 1, 6, 4, 9, 7, 5, 2, 3],
+                           [9, 5, 3, 1, 8, 2, 4, 7, 6],
+                           [1, 6, 4, 9, 2, 5, 3, 8, 7],
+                           [2, 3, 9, 8, 7, 4, 6, 5, 1],
+                           [5, 8, 7, 6, 3, 1, 9, 4, 2]])
+        
+        solver = PULPSolver()
+        sudoku = Sudoku(input_matrix=input, input_solverStrategy=solver, input_variants=variants, input_shapes=shapes)
+        result, status = sudoku.solve()
+
+        self.assertEqual(status, Status.SOLVED)
+        self.assertTrue(np.all(result == output))
+
+
+
 if __name__ == '__main__':
     unittest.main()

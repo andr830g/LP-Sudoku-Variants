@@ -11,10 +11,12 @@ class Variants(Enum):
     NON_CONSECUTIVE_NEIGHBOR = 'non_consecutive_neighbor'
     CHESS_KING = 'chess_king'
     CHESS_KNIGHT = 'chess_knight'
+    THERMO = 'thermo'
 
 
 variants_default = {Variants.SQUARES:True,
                     Variants.DIAGONAL:False,
                     Variants.NON_CONSECUTIVE_NEIGHBOR:False,
                     Variants.CHESS_KING:False,
-                    Variants.CHESS_KNIGHT:False}
+                    Variants.CHESS_KNIGHT:False,
+                    Variants.THERMO:False}

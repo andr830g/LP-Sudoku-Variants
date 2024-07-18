@@ -10,7 +10,21 @@ from copy import deepcopy
 
 
 class Sudoku(AbstractSudoku):
-    def __init__(self, input_matrix: np.array, input_solverStrategy: AbstractSolver, input_variants: dict = None) -> None:
+    """
+        Software that solves Sudokus.
+        Find examples at https://sudoku.today
+
+        @input:
+            input_matrix: NDarray of unsolved sudoku where unfilled cells contain 0.
+            input_solverStrategy: solver implementation that follows the AbstractSolver interface.
+            input_variants: dictionary with additional rules activated, default is standard sudoku rules.
+        
+        @return:
+            Solved sudoku and solution status
+
+    """
+
+    def __init__(self, input_matrix: np.array, input_solverStrategy: AbstractSolver, input_variants: dict = None, input_shapes: dict = None) -> None:
         self._matrix = input_matrix
         self._solverStrategy = input_solverStrategy
 
@@ -18,6 +32,8 @@ class Sudoku(AbstractSudoku):
         if input_variants is not None:
             for variant, value in input_variants.items():
                 self._variants[variant] = value
+        
+        self._shapes = input_shapes
 
         # parameters
         self._square_row_length = 3
@@ -84,6 +100,9 @@ class Sudoku(AbstractSudoku):
 
     def getVariants(self) -> dict[Variants]:
         return self._variants
+    
+    def getShape(self, variant: Variants) -> dict[list]:
+        return self._shapes.get(variant)
     
 
     def solve(self) -> tuple[np.array, Status]:
