@@ -16,7 +16,9 @@ class PULPSolver(AbstractSolver):
 
         self._variant_map = {Variants.SQUARES:self.squareConstraints,
                              Variants.DIAGONAL:self.diagonalConstraints,
-                             Variants.NON_CONSECUTIVE_NEIGHBOR:self.nonConsecutiveNeighborConstraints}
+                             Variants.NON_CONSECUTIVE_NEIGHBOR:self.nonConsecutiveNeighborConstraints,
+                             Variants.CHESS_KING:self.chessKingConstraints,
+                             Variants.CHESS_KNIGHT:self.chessKnightConstraints}
 
 
     def solve(self, sudoku: AbstractSudoku) -> tuple[np.array, Status]:
@@ -119,6 +121,25 @@ class PULPSolver(AbstractSolver):
                     Model += PLP.lpSum([x[i][j][v]*v for v in values]) - PLP.lpSum([x[i+1][j][v]*v for v in values]) - 2 >= -self._inf*(1-non_consecutive_delta[non_consecutive_count][1])
                     Model += PLP.lpSum([x[i+1][j][v]*v for v in values]) - PLP.lpSum([x[i][j][v]*v for v in values]) - 2 >= -self._inf*(1-non_consecutive_delta[non_consecutive_count][2])
                     Model += non_consecutive_delta[non_consecutive_count][1] + non_consecutive_delta[non_consecutive_count][2] == 1
+        return Model
+    
+
+    def chessKingConstraints(self, Model, sudoku, x, N, row_index, col_index, values) -> PLP.LpProblem:
+        for i in row_index:
+            for j in col_index:
+                chess_king_points = [(i+a, j+b) for a in [-1, 1] for b in [-1, 1] if i+a >= 1 and i+a <= N and j+b >= 1 and j+b <= N]
+                for v in values:
+                    Model += PLP.lpSum([x[a][b][v] for (a, b) in chess_king_points]) <= 4*(1-x[i][j][v])
+        return Model
+    
+
+    def chessKnightConstraints(self, Model, sudoku, x, N, row_index, col_index, values) -> PLP.LpProblem:
+        for i in row_index:
+            for j in col_index:
+                chess_knight_points = [(i+a, j+b) for (a, b) in [(1, -2), (-1, -2), (-2, -1), (-2, 1), (-1, 2), (1, 2), (2, 1), (2, -1)] 
+                                       if i+a >= 1 and i+a <= N and j+b >= 1 and j+b <= N]
+                for v in values:
+                    Model += PLP.lpSum([x[a][b][v] for (a, b) in chess_knight_points]) <= 8*(1-x[i][j][v])
         return Model
     
 

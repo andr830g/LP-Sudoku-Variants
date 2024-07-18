@@ -325,5 +325,106 @@ class TestSolveNonConsecutiveNeighbor(unittest.TestCase):
 
 
 
+class TestSolveChessKing(unittest.TestCase):
+    def test_add_chess_king_rule(self):
+        variants = {Variants.CHESS_KING:True}
+        input = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0]])
+        
+        solver = PULPSolver()
+        sudoku = Sudoku(input_matrix=input, input_solverStrategy=solver, input_variants=variants)
+
+        self.assertEqual(sudoku.getVariants()[Variants.CHESS_KING], True)
+    
+
+    def test_solve_chess_king_rule(self):
+        variants = {Variants.CHESS_KING:True}
+
+        input = np.array([[0, 8, 3, 4, 2, 5, 0, 7, 1],
+                          [5, 0, 1, 0, 0, 3, 2, 4, 0],
+                          [0, 0, 0, 7, 9, 1, 0, 3, 0],
+                          [7, 0, 9, 2, 4, 6, 0, 0, 0],
+                          [6, 0, 4, 1, 0, 0, 3, 0, 2],
+                          [2, 0, 0, 0, 3, 0, 4, 6, 7],
+                          [0, 6, 0, 9, 0, 8, 0, 0, 4],
+                          [8, 9, 0, 0, 0, 0, 7, 0, 6],
+                          [1, 4, 7, 6, 0, 2, 0, 0, 3]])
+        
+        output = np.array([[9, 8, 3, 4, 2, 5, 6, 7, 1],
+                           [5, 7, 1, 8, 6, 3, 2, 4, 9],
+                           [4, 2, 6, 7, 9, 1, 8, 3, 5],
+                           [7, 3, 9, 2, 4, 6, 5, 1, 8],
+                           [6, 5, 4, 1, 8, 7, 3, 9, 2],
+                           [2, 1, 8, 5, 3, 9, 4, 6, 7],
+                           [3, 6, 2, 9, 7, 8, 1, 5, 4],
+                           [8, 9, 5, 3, 1, 4, 7, 2, 6],
+                           [1, 4, 7, 6, 5, 2, 9, 8, 3]])
+        
+        solver = PULPSolver()
+        sudoku = Sudoku(input_matrix=input, input_solverStrategy=solver, input_variants=variants)
+        result, status = sudoku.solve()
+
+        self.assertEqual(status, Status.SOLVED)
+        self.assertTrue(np.all(result == output))
+
+
+
+class TestSolveChessKnight(unittest.TestCase):
+    def test_add_chess_knight_rule(self):
+        variants = {Variants.CHESS_KNIGHT:True}
+        input = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0]])
+        
+        solver = PULPSolver()
+        sudoku = Sudoku(input_matrix=input, input_solverStrategy=solver, input_variants=variants)
+
+        self.assertEqual(sudoku.getVariants()[Variants.CHESS_KNIGHT], True)
+    
+    
+    def test_solve_chess_king_rule(self):
+        variants = {Variants.CHESS_KNIGHT:True}
+
+        input = np.array([[5, 6, 1, 0, 8, 0, 2, 0, 4],
+                          [0, 0, 0, 4, 6, 0, 0, 9, 0],
+                          [7, 9, 0, 0, 0, 0, 0, 6, 8],
+                          [9, 0, 0, 1, 0, 3, 0, 0, 0],
+                          [0, 0, 5, 0, 0, 0, 3, 7, 0],
+                          [0, 0, 0, 5, 0, 0, 6, 0, 9],
+                          [1, 3, 9, 0, 0, 0, 0, 4, 0],
+                          [0, 0, 7, 0, 4, 0, 0, 0, 0],
+                          [0, 0, 8, 0, 1, 0, 0, 0, 6]])
+        
+        output = np.array([[5, 6, 1, 9, 8, 7, 2, 3, 4],
+                           [3, 8, 2, 4, 6, 1, 5, 9, 7],
+                           [7, 9, 4, 2, 3, 5, 1, 6, 8],
+                           [9, 7, 6, 1, 2, 3, 4, 8, 5],
+                           [8, 2, 5, 6, 9, 4, 3, 7, 1],
+                           [4, 1, 3, 5, 7, 8, 6, 2, 9],
+                           [1, 3, 9, 7, 5, 6, 8, 4, 2],
+                           [6, 5, 7, 8, 4, 2, 9, 1, 3],
+                           [2, 4, 8, 3, 1, 9, 7, 5, 6]])
+        
+        solver = PULPSolver()
+        sudoku = Sudoku(input_matrix=input, input_solverStrategy=solver, input_variants=variants)
+        result, status = sudoku.solve()
+
+        self.assertEqual(status, Status.SOLVED)
+        self.assertTrue(np.all(result == output))
+
+
 if __name__ == '__main__':
     unittest.main()
